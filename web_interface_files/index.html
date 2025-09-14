@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Agriculture Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smart Agriculture Dashboard</h1>
+            <p>Real-time monitoring and AI-powered recommendations</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="sidebar">
+                <div class="widget current-readings">
+                    <h2>Current Readings</h2>
+                    <div class="reading" id="moisture-reading">
+                        <span class="label">Soil Moisture:</span>
+                        <span class="value">--%</span>
+                    </div>
+                    <div class="reading" id="temperature-reading">
+                        <span class="label">Temperature:</span>
+                        <span class="value">--°C</span>
+                    </div>
+                    <div class="reading" id="humidity-reading">
+                        <span class="label">Humidity:</span>
+                        <span class="value">--%</span>
+                    </div>
+                    <div class="reading" id="nitrogen-reading">
+                        <span class="label">Nitrogen:</span>
+                        <span class="value">-- mg/kg</span>
+                    </div>
+                    <div class="reading" id="phosphorus-reading">
+                        <span class="label">Phosphorus:</span>
+                        <span class="value">-- mg/kg</span>
+                    </div>
+                    <div class="reading" id="potassium-reading">
+                        <span class="label">Potassium:</span>
+                        <span class="value">-- mg/kg</span>
+                    </div>
+                </div>
+
+                <div class="widget health-score">
+                    <h2>Crop Health Score</h2>
+                    <div class="score-circle">
+                        <span id="health-score">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="alerts-panel">
+                    <h2>Alerts & Notifications</h2>
+                    <div id="alerts-container"></div>
+                </div>
+
+                <div class="recommendations">
+                    <div class="card">
+                        <h2>Crop Recommendations</h2>
+                        <div id="crop-recommendations"></div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>Fertilizer Recommendations</h2>
+                        <div id="fertilizer-recommendations"></div>
+                    </div>
+                </div>
+
+                <div class="charts">
+                    <div class="card">
+                        <h2>Soil Moisture Trend</h2>
+                        <canvas id="moisture-chart"></canvas>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>Nutrient Levels</h2>
+                        <canvas id="nutrient-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="predictions">
+                    <div class="card">
+                        <h2>Yield Prediction</h2>
+                        <div id="yield-prediction"></div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>Risk Assessment</h2>
+                        <div id="risk-assessment"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
