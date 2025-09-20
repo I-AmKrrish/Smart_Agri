@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuthFlow - Login & Signup</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            padding: 25px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h2 {
+            font-weight: 600;
+            font-size: 24px;
+        }
+        
+        .form-container {
+            padding: 25px 30px;
+        }
+        
+        .form-control {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .form-control input:focus {
+            border-color: #4facfe;
+            outline: none;
+        }
+        
+        .form-control i {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            color: #aaa;
+        }
+        
+        .form-control small {
+            color: #e74c3c;
+            margin-top: 5px;
+            display: block;
+            visibility: hidden;
+        }
+        
+        .form-control.error small {
+            visibility: visible;
+        }
+        
+        .form-control.error input {
+            border-color: #e74c3c;
+        }
+        
+        .form-control.success input {
+            border-color: #2ecc71;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+        }
+        
+        .toggle-form a {
+            color: #4facfe;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+        }
+        
+        .divider span {
+            flex: 1;
+            height: 1px;
+            background-color: #ddd;
+        }
+        
+        .divider p {
+            margin: 0 15px;
+            color: #777;
+        }
+        
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .google {
+            background-color: #DB4437;
+        }
+        
+        .facebook {
+            background-color: #4267B2;
+        }
+        
+        .github {
+            background-color: #333;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+        }
+        
+        @media (max-width: 500px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2 id="form-title">Login to Your Account</h2>
+        </div>
+        
+        <div class="form-container">
+            <div id="alert-box"></div>
+            
+            <form id="login-form">
+                <div class="form-control">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email">
+                    <i class="fas fa-envelope"></i>
+                    <small>Error message</small>
+                </div>
+                
+                <div class="form-control">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password">
+                    <i class="fas fa-eye password-toggle" id="login-password-toggle"></i>
+                    <small>Error message</small>
+                </div>
+                
+                <button type="submit" class="btn">Login</button>
+            </form>
+            
+            <form id="signup-form" style="display: none;">
+                <div class="form-control">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name">
+                    <i class="fas fa-user"></i>
+                    <small>Error message</small>
+                </div>
+                
+                <div class="form-control">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                    <i class="fas fa-envelope"></i>
+                    <small>Error message</small>
+                </div>
+                
+                <div class="form-control">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password">
+                    <i class="fas fa-eye password-toggle" id="signup-password-toggle"></i>
+                    <small>Error message</small>
+                </div>
+                
+                <div class="form-control">
+                    <label for="signup-password-confirm">Confirm Password</label>
+                    <input type="password" id="signup-password-confirm" placeholder="Confirm your password">
+                    <i class="fas fa-eye password-toggle" id="signup-confirm-password-toggle"></i>
+                    <small>Error message</small>
+                </div>
+                
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+            
+            <div class="toggle-form">
+                <span id="toggle-text">Don't have an account?</span>
+                <a id="toggle-link">Sign up</a>
+            </div>
+            
+            <div class="divider">
+                <span></span>
+                <p>Or continue with</p>
+                <span></span>
+            </div>
+            
+            <div class="social-login">
+                <div class="social-btn google" id="google-login">
+                    <i class="fab fa-google"></i>
+                </div>
+                <div class="social-btn facebook" id="facebook-login">
+                    <i class="fab fa-facebook-f"></i>
+                </div>
+                <div class="social-btn github" id="github-login">
+                    <i class="fab fa-github"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        // Firebase configuration (replace with your actual config)
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1WiiTEYXB3-1Daa9w56XbEyTuYtwGveE",
+            authDomain: "loginpage-1ad6e.firebaseapp.com",
+            projectId: "loginpage-1ad6e",
+            storageBucket: "loginpage-1ad6e.firebasestorage.app",
+            messagingSenderId: "723088867737",
+            appId: "1:723088867737:web:a11b55e2f93d7d9473d308",
+            measurementId: "G-LPWHZH9733"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        // DOM Elements
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const formTitle = document.getElementById('form-title');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleLink = document.getElementById('toggle-link');
+        const alertBox = document.getElementById('alert-box');
+        
+        // Toggle between login and signup forms
+        toggleLink.addEventListener('click', () => {
+            const isLoginVisible = loginForm.style.display !== 'none';
+            
+            if (isLoginVisible) {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                formTitle.textContent = 'Create an Account';
+                toggleText.textContent = 'Already have an account?';
+                toggleLink.textContent = 'Login';
+            } else {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                formTitle.textContent = 'Login to Your Account';
+                toggleText.textContent = 'Don\'t have an account?';
+                toggleLink.textContent = 'Sign up';
+            }
+            
+            // Clear any existing alerts
+            hideAlert();
+        });
+        
+        // Password visibility toggles
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const input = this.parentElement.querySelector('input');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.classList.remove('fa-eye');
+                    this.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    this.classList.remove('fa-eye-slash');
+                    this.classList.add('fa-eye');
+                }
+            });
+        });
+        
+        // Show alert message
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            // Auto hide after 5 seconds
+            setTimeout(hideAlert, 5000);
+        }
+        
+        // Hide alert message
+        function hideAlert() {
+            alertBox.style.display = 'none';
+        }
+        
+        // Validate email format
+        function isValidEmail(email) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+        
+        // Form validation
+        function validateForm(form, isLogin) {
+            let isValid = true;
+            const email = isLogin ? 
+                document.getElementById('login-email') : 
+                document.getElementById('signup-email');
+            const password = isLogin ? 
+                document.getElementById('login-password') : 
+                document.getElementById('signup-password');
+            
+            // Validate email
+            if (!email.value.trim()) {
+                showError(email, 'Email is required');
+                isValid = false;
+            } else if (!isValidEmail(email.value.trim())) {
+                showError(email, 'Email is not valid');
+                isValid = false;
+            } else {
+                showSuccess(email);
+            }
+            
+            // Validate password
+            if (!password.value.trim()) {
+                showError(password, 'Password is required');
+                isValid = false;
+            } else if (password.value.length < 6) {
+                showError(password, 'Password must be at least 6 characters');
+                isValid = false;
+            } else {
+                showSuccess(password);
+            }
+            
+            // Additional validation for signup form
+            if (!isLogin) {
+                const name = document.getElementById('signup-name');
+                const confirmPassword = document.getElementById('signup-password-confirm');
+                
+                // Validate name
+                if (!name.value.trim()) {
+                    showError(name, 'Name is required');
+                    isValid = false;
+                } else {
+                    showSuccess(name);
+                }
+                
+                // Validate confirm password
+                if (!confirmPassword.value.trim()) {
+                    showError(confirmPassword, 'Please confirm your password');
+                    isValid = false;
+                } else if (confirmPassword.value !== password.value) {
+                    showError(confirmPassword, 'Passwords do not match');
+                    isValid = false;
+                } else {
+                    showSuccess(confirmPassword);
+                }
+            }
+            
+            return isValid;
+        }
+        
+        // Show input error message
+        function showError(input, message) {
+            const formControl = input.parentElement;
+            formControl.className = 'form-control error';
+            formControl.querySelector('small').textContent = message;
+        }
+        
+        // Show success outline
+        function showSuccess(input) {
+            const formControl = input.parentElement;
+            formControl.className = 'form-control success';
+        }
+        
+        // Login with email and password
+        loginForm.addEventListener('submit', e => {
+            e.preventDefault();
+            
+            if (validateForm(loginForm, true)) {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                // Firebase login
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Signed in 
+                        const user = userCredential.user;
+                        showAlert('Login successful! Redirecting...', 'success');
+                        
+                        // Simulate backend API call after successful login
+                        simulateBackendCall('login', {
+                            uid: user.uid,
+                            email: user.email
+                        });
+                    })
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        let errorMessage = 'An error occurred during login';
+                        
+                        if (errorCode === 'auth/user-not-found') {
+                            errorMessage = 'No account found with this email';
+                        } else if (errorCode === 'auth/wrong-password') {
+                            errorMessage = 'Incorrect password';
+                        }
+                        
+                        showAlert(errorMessage, 'error');
+                    });
+            }
+        });
+        
+        // Sign up with email and password
+        signupForm.addEventListener('submit', e => {
+            e.preventDefault();
+            
+            if (validateForm(signupForm, false)) {
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const name = document.getElementById('signup-name').value;
+                
+                // Firebase signup
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Signed up
+                        const user = userCredential.user;
+                        
+                        // Update profile with name
+                        user.updateProfile({
+                            displayName: name
+                        }).then(() => {
+                            showAlert('Account created successfully!', 'success');
+                            
+                            // Simulate backend API call after successful signup
+                            simulateBackendCall('signup', {
+                                uid: user.uid,
+                                email: user.email,
+                                name: name
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        let errorMessage = 'An error occurred during signup';
+                        
+                        if (errorCode === 'auth/email-already-in-use') {
+                            errorMessage = 'Email is already in use';
+                        } else if (errorCode === 'auth/weak-password') {
+                            errorMessage = 'Password is too weak';
+                        }
+                        
+                        showAlert(errorMessage, 'error');
+                    });
+            }
+        });
+        
+        // Social logins
+        document.getElementById('google-login').addEventListener('click', () => {
+            showAlert('Google login would be implemented here', 'success');
+        });
+        
+        document.getElementById('facebook-login').addEventListener('click', () => {
+            showAlert('Facebook login would be implemented here', 'success');
+        });
+        
+        document.getElementById('github-login').addEventListener('click', () => {
+            showAlert('GitHub login would be implemented here', 'success');
+        });
+        
+        // Simulate backend API call
+        function simulateBackendCall(endpoint, data) {
+            console.log(`Simulating backend call to ${endpoint} with data:`, data);
+            
+            // In a real application, you would use fetch or axios to send data to your backend
+            /* 
+            fetch(`https://your-backend.com/api/${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Backend response:', data);
+            })
+            .catch(error => {
+                console.error('Error calling backend:', error);
+            });
+            */
+        }
+    </script>
+</body>
+</html>
